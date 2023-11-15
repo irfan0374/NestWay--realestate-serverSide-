@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+  const mongoose = require("mongoose");
 
 const PartnerModel = new mongoose.Schema({
   name: {
@@ -17,9 +17,13 @@ const PartnerModel = new mongoose.Schema({
     type: String,
     required: true,
   },
+  kycimage:{
+    type:String,
+    
+  },
   adminApproved: {
-    type: Boolean,
-    default: false,
+   type:String,
+   
   },
   isVerified: {
     type: Boolean,

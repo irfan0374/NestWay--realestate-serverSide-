@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt")
 const sendEmail = require("../utils/nodemailer")
 const otpmodel = require('../model/otp')
 const user = require('../model/userModel');
+const property=require('../model/propertyModel')
 
 const securePassword = require('../utils/securepassword')
 
@@ -73,9 +74,10 @@ const otpVerify = async (req, res) => {
 }
 const loginVerification = async (req, res) => {
     try {
-        const email = req.body.registeredUser.email
-        const password = req.body.registeredUser.password
-        log
+        console.log(req.body);
+        const email = req.body.email
+        const password = req.body.password
+        
         const User = await user.findOne({ email: email })
 
         if (!User) {
@@ -139,10 +141,40 @@ const UserGoolgleLogin = async (req, res) => {
         return res.status(500).json({message:"internal server Error"})
     }
 }
+const propertyList=async(req,res)=>{
+    try{
+        const listProperty=await property.find()
+        if(listProperty){
+            res.status(200).json({listProperty})
+        }else{
+            res.status(400).json({message:"something went wrong!!"})
+        }
+    }catch(error){
+        console.log(error.message)
+        res.status(500).json({message:"Internal server Error"})
+    }
+}
+const propertyDetail=async(req,res)=>{
+    try{
+        const {propertyId}=req.params;
+        const Property=await property.findOne({_id:propertyId})
+        if(Property){
+            res.status(200).json({Property})
+        }else{
+            res.status(400).json({message:"something went wrong!!"})
+        }
+    }catch(error){
+        console.log(error.message)
+        res.status(500).json({message:"Internal Server Error"})
+    }
+}
+
 module.exports = {
     userRegistration,
     otpVerify,
     loginVerification,
-    UserGoolgleLogin
+    UserGoolgleLogin,
+    propertyList,
+    propertyDetail
 }
 
