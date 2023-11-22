@@ -11,9 +11,9 @@ module.exports = {
         const userName = 'Admin'
         try {
             const { email, password } = req.body
-            console.log(email, password)
+         
             if (adminEmail == email) {
-
+                
                 if (adminPassword === password) {
 
                     const token = jwt.sign({
@@ -21,7 +21,7 @@ module.exports = {
                         email: adminEmail,
                         role: "admin"
                     },
-                        process.env.USER_SECRET,
+                        process.env.ADMIN_SECRET,
                         { expiresIn: "1hr" }
                     );
                     res.status(200).json({ userName, token, message: `welcome to ${userName}` })
@@ -81,7 +81,7 @@ module.exports = {
     findPartner: async (req, res) => {
         try {
             const { partnerId } = req.params;
-            console.log(partnerId, "kycupload id")
+        
             const partnerGet = await Partner.findOne({ _id: partnerId })
             if (partnerGet) {
                 res.status(200).json({ partnerGet })
@@ -141,7 +141,7 @@ module.exports = {
     },
     approvalProperty:async(req,res)=>{
         try {
-            console.log("helhl")
+    
             const {propertyId,status}=req.body
             if(status==="approve"){
                 const approve=await Property.findOneAndUpdate({_id:propertyId},{$set:{verificationStatus:status}})

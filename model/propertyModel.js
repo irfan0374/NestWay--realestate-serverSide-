@@ -30,13 +30,18 @@ const PropertyModel = new mongoose.Schema({
         type: String,
         required: true
     },
-    verificationStatus: {
+    verificationStatus: { 
         type: String,
+        default:"null"
        
     },
     floor: {
         type: Number,
 
+    },
+    features:{
+        type:Array,
+        requried:true
     },
     propertyBHK: {
         type: String,

@@ -21,6 +21,9 @@ const PartnerModel = new mongoose.Schema({
     type:String,
     
   },
+  profile:{
+    type:String
+  },
   adminApproved: {
    type:String,
    
@@ -28,6 +31,9 @@ const PartnerModel = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false,
+  },
+  aboutMe:{
+    type:String
   },
   isBlocked: {
     type: Boolean,

@@ -17,7 +17,7 @@ const sendGmail = async (name,email,userId) => {
       from: 'nestway2266@gmail.com',
       to: email,
       subject: 'Sending Email using Node.js',
-      html: `
+      html: `  
       <div style="font-family: Helvetica, Arial, sans-serif; min-width: 1000px; overflow: auto; line-height: 2">
         <div style="margin: 50px auto; width: 70%; padding: 20px 0">
           <div style="border-bottom: 1px solid #eee">
