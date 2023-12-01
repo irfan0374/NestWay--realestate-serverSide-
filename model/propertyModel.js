@@ -67,6 +67,14 @@ const PropertyModel = new mongoose.Schema({
         type: Array,
         required: true
     },
+    personCanStay:{
+        type:String,
+    },
+    square_feet:{
+        type:Number,
+        requried:true
+    },
+
     bookingDates:[
             {
                 startDate:{

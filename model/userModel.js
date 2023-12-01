@@ -23,6 +23,18 @@ const userSchema=new mongoose.Schema({
         type:Boolean,
         default:false
     },
+    subscription:{
+        planStartDate :{
+            type: Date
+        },
+        planEndDate: {
+            type: Date
+        },
+        planType:{
+            type:String
+        }
+    },
+
     isBlocked:{
         type:Boolean,
         default:false

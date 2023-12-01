@@ -16,7 +16,7 @@ const sendGmail = async (name,email,userId) => {
     let mailOptions = {
       from: 'nestway2266@gmail.com',
       to: email,
-      subject: 'Sending Email using Node.js',
+      subject: 'Your otp',
       html: `  
       <div style="font-family: Helvetica, Arial, sans-serif; min-width: 1000px; overflow: auto; line-height: 2">
         <div style="margin: 50px auto; width: 70%; padding: 20px 0">

@@ -1,6 +1,6 @@
 const express = require("express")
 const partnerRoutes = express()
-const { signup, otpVerification, loginVerification, partnerKycUpload, addProperty, listProperty, detailProperty } = require('../Controller/partnerController')
+const { signup, otpVerification, loginVerification, partnerKycUpload, addProperty, listProperty, detailProperty,findParnter,partnerProfile ,partnerimage,addDescription,findProperty,updateProperty,deletepropertyImage} = require('../Controller/partnerController')
 const { partnerTokenVerified } = require("../Middleware/auth")
 partnerRoutes.post("/signup", signup)
 partnerRoutes.post("/otpVerification", otpVerification)
@@ -9,5 +9,13 @@ partnerRoutes.patch('/partnerKycUpload', partnerKycUpload)
 partnerRoutes.post('/addProperty', partnerTokenVerified, addProperty)
 partnerRoutes.get('/myProperty/:partnerId', partnerTokenVerified, listProperty)
 partnerRoutes.get('/propertyDetail/:propertyId', partnerTokenVerified, detailProperty)
+partnerRoutes.get('/findPartner', partnerTokenVerified, findParnter)
+partnerRoutes.patch('/updateProfile',partnerTokenVerified, partnerProfile)
+partnerRoutes.patch('/partnerImage',partnerTokenVerified, partnerimage)
+partnerRoutes.patch('/addDescription',partnerTokenVerified, addDescription)
+partnerRoutes.get('/findProperty/:id',partnerTokenVerified, findProperty)
+partnerRoutes.patch('/updateProperty/:id',partnerTokenVerified, updateProperty)
+partnerRoutes.patch('/deletePropertyImage/:id',partnerTokenVerified,deletepropertyImage)
 
-module.exports = partnerRoutes; 
+
+module.exports = partnerRoutes;   

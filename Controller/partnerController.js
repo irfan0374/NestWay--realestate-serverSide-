@@ -41,7 +41,7 @@ module.exports = {
         } catch (error) {
             console.log(error.message)
             res.status(500).json({ message: "internal server Error" })
-        }
+        } 
     },
     otpVerification: async (req, res) => {
         try {
@@ -75,10 +75,11 @@ module.exports = {
 
             const { email, password } = req.body
             const Partner = await partner.findOne({ email: email })
+          
 
             if (!Partner) {
-
-                res.status(401).json({ message: "Email is incorrect Please check" })
+                
+               return res.status(401).json({ message: "Email is incorrect Please check" })
             }     
             if (Partner.isVerified) { 
 
@@ -143,7 +144,7 @@ module.exports = {
     addProperty: async (req, res) => {
 
         try {
-            const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location,featureField } = req.body
+            const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location,featureField,numberOfPeople } = req.body
         
             const uploadedPromises = propertyImage.map((image) => {
                 return cloudinary.uploader.upload(image, { folder: "propertyImage" })
@@ -154,6 +155,7 @@ module.exports = {
             const uploadedImage = await Promise.all(uploadedPromises)
             // store the url in the Property image arr
             const PropertyImage = uploadedImage.map((image) => image.secure_url);
+
             const Property = await property.create({
                 partnerId,
                 propertyFor: propertyFor,
@@ -165,10 +167,11 @@ module.exports = {
                 features:featureField,
                 propertyBHK: bhk,
                 bathroom,
+                personCanStay:numberOfPeople,
                 description,
                 location,
                 Price: price,
-                propertyImage,
+                propertyImage:PropertyImage,
             });
 
             res.status(200).json({ Property, message: "Property added successfully" })
@@ -209,4 +212,171 @@ module.exports = {
             res.status(500).json({ message: "internal server error" })
         }
     },
-}
+    findParnter:async(req,res)=>{
+        try{
+
+            const email=req.partner.email
+         
+          const Partner=await partner.findOne({email:email})
+          if(Partner){
+            res.status(200).json({Partner})
+          }else{ 
+            res.status(401).json({message:"something went wrong"})
+          }
+
+        }catch(error){
+            res.status(500).json({message:"Internal server error"})
+
+
+            console.log(error.message)
+        }
+    },
+    partnerProfile:async(req,res)=>{
+        try {
+            const {name,phone,partnerId}=req.body
+            const Partner=await partner.findOneAndUpdate({_id:partnerId},{$set:{name:name,phone:phone}})
+            if(Partner){
+                res.status(200).json({Partner})
+            }else{
+                res.status(401).json({message:"something went wrong"})
+            }
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+    partnerimage:async(req,res)=>{
+        try {
+            const {imageData,partnerId}=req.body
+            const profile=await cloudinary.uploader.upload(imageData,{folder:"partnerProfile"})
+            const Partner=await partner.findOneAndUpdate({_id:partnerId},{$set:{profile:profile.secure_url}})
+            if(Partner){
+                res.status(200).json({Partner})
+            }else{
+                res.status(401).json({message:"something went wrong"})
+            }
+        } catch (error) {
+            res.status(500).json({message:"Internal server error"})
+
+            console.log(error.message)
+        }
+    },
+    addDescription:async(req,res)=>{
+        try{
+            console.log(req.body,"req.body")
+            const {state,location ,description,partnerId}=req.body
+
+            const partnerData =await partner.findOneAndUpdate({_id:partnerId},{$set:{"aboutMe.state":state,"aboutMe.location":location,"aboutMe.description":description}})
+            if(partnerData){
+                res.status(200).json({message:"Description added"})
+            }else{
+                res.status(401).json({message:"something went wrong"})
+            }
+        }catch(error){
+            console.log(error.message)
+            res.status(500).json({message:"Internal server error"})
+        }
+    },
+    findProperty:async (req,res)=>{
+        try {
+           const {id}=req.params 
+           const Property=await property.findById({_id:id})
+           if(Property){
+            res.status(200).json({Property})
+           }else{
+            res.status(401).json({message:"Internal server error"})   
+           }
+
+        } catch (error) { 
+            res.status(500).json({message:"Internal server error"})
+            console.log(error.message)
+        }
+    },
+    updateProperty: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, location, featureData, numberOfPeople } = req.body;
+            console.log(featureData,"featureField")
+    
+            let existingImage = [];
+            let existingProperty = await property.findById({ _id: id });
+    
+            if (propertyImage.length === 0) {
+                existingImage = existingProperty.propertyImage;
+            } else {
+                const uploaderPromise = propertyImage.map((image) => {
+                    return cloudinary.uploader.upload(image, { folder: "propertyImage" });
+                });
+    
+    
+                const uploadImage = await Promise.all(uploaderPromise);
+    
+                if (existingProperty && existingProperty.propertyImage && existingProperty.propertyImage.length > 0) {
+                    existingImage = existingProperty.propertyImage;
+                }
+    
+                let propertyImg = uploadImage.map((data) => data.secure_url);
+    
+                for (let i = 0; i < propertyImg.length; i++) {
+                    existingImage.push(propertyImg[i]);
+                }
+            }
+    
+            const Property = await property.findOneAndUpdate(
+                { _id: id },
+                {
+                    $set: {
+                        propertyFor: propertyFor,
+                        propertyName: propertyname,
+                        propertyType: type,
+                        state,
+                        city,
+                        floor,
+                        features: featureData,
+                        propertyBHK: bhk,
+                        bathroom,
+                        description,
+                        location,
+                        Price: price,
+                        propertyImage: existingImage,
+                        personCanStay:numberOfPeople,
+                    },
+                }
+            );
+    
+            if (Property) {
+                res.status(200).json({ Property });
+            } else {
+                res.status(401).json({ message: "something went wrong" });
+            }
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    },
+    
+    deletepropertyImage:async(req,res)=>{
+        try {
+            const {imgsrc}=req.body
+            const {id}=req.params
+            
+            const publicId=imgsrc.match(/\/v\d+\/(.+?)\./)[1];
+            console.log(publicId,"publicId")
+
+            const deletionResult=await cloudinary.uploader.destroy(publicId,{folder:"propertyImage"})
+        
+            if(deletionResult.result==='ok'){
+                const updateData=await property.findByIdAndUpdate({_id:id},{$pull:{propertyImage:imgsrc}},{new:true})
+                if(!updateData){
+                    return res.status(404).json({message:"Property not found"})
+                }
+                res.status(200).json({updateData,message:"Image remove successfully"})
+            }else{
+                console.error(`failed to remove the Image${imgsrc}from cloudinary`)
+            }
+            
+        } catch (error) {
+            console.log(error.message)
+            res.status(500).json({message:"Internal server error"})
+        }
+    }
+}   

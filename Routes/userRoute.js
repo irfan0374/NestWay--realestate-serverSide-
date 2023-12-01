@@ -1,16 +1,22 @@
-const express = require('express')
-const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, saleProperty, profileImage, } = require('../Controller/userController');
+const express = require('express');
 const userRoute = express()
-const { userTokenVerify } = require("../Middleware/auth")
-userRoute.post('/signup', userRegistration)
-userRoute.post('/otpVerify', otpVerify)
-userRoute.post('/userLogin', loginVerification)
-userRoute.post('/googleUserLogin', UserGoolgleLogin)
-userRoute.get('/propertyDetails/:propertyId', propertyDetail)
-userRoute.get('/findUser/:id',userTokenVerify, findUser)
-userRoute.patch('/updateProfile',userTokenVerify, updateProfile)
-userRoute.get('/rentProperty', rentProperty)
-userRoute.patch('/updataImage',userTokenVerify, profileImage)
-userRoute.get('/saleProperty', saleProperty)
+const { userTokenVerify } = require('../Middleware/auth');
+const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent } = require('../Controller/userController');
 
-module.exports = userRoute; 
+userRoute.post('/signup', userRegistration);
+userRoute.post('/otpVerify', otpVerify);
+userRoute.post('/userLogin', loginVerification);
+userRoute.post('/googleUserLogin', UserGoolgleLogin);
+userRoute.get('/propertyDetails/:propertyId', propertyDetail);
+userRoute.get('/findUser/:id', userTokenVerify, findUser);
+userRoute.patch('/updateProfile', userTokenVerify, updateProfile);
+userRoute.get('/rentProperty', rentProperty);
+userRoute.patch('/updataImage', userTokenVerify, profileImage);
+userRoute.get('/saleProperty', saleProperty);
+userRoute.patch('/create-subscription', subscription);
+userRoute.patch('/premiumUpdate/:id', premiumUpdate);
+userRoute.get('/findPartner/:id', findPartner);
+userRoute.post('/sentMailtoAgent', contactAgent);
+
+module.exports = userRoute;
+

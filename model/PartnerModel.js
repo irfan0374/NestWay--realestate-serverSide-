@@ -33,8 +33,18 @@ const PartnerModel = new mongoose.Schema({
     default: false,
   },
   aboutMe:{
-    type:String
+    state:{
+      type:String
+    },
+    location:{
+      type:String
+    },
+    description:{
+      type:String
+    }
+
   },
+  
   isBlocked: {
     type: Boolean,
     default: false,
