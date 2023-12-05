@@ -155,6 +155,16 @@ module.exports = {
             console.log(error.message)
             res.status(500).json({ message: "Internal server Error" })
         }
+    },
+    premiumUSer:async(req,res)=>{
+        try {
+            const res=await User.find({"subscription.planType":monthly||weekly})
+            console.log(res,"sssssssssssssssssssssssssssss")
+            
+        } catch (error) {
+
+            console.log(error.message)
+        }
     }
 
 }

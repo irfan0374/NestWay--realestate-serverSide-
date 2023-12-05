@@ -28,7 +28,7 @@ const userSchema=new mongoose.Schema({
             type: Date
         },
         planEndDate: {
-            type: Date
+            type: Date 
         },
         planType:{
             type:String

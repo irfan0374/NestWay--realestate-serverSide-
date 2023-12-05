@@ -1,7 +1,7 @@
 const express = require('express');
 const userRoute = express()
 const { userTokenVerify } = require('../Middleware/auth');
-const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent } = require('../Controller/userController');
+const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser } = require('../Controller/userController');
 
 userRoute.post('/signup', userRegistration);
 userRoute.post('/otpVerify', otpVerify);
@@ -17,6 +17,7 @@ userRoute.patch('/create-subscription', subscription);
 userRoute.patch('/premiumUpdate/:id', premiumUpdate);
 userRoute.get('/findPartner/:id', findPartner);
 userRoute.post('/sentMailtoAgent', contactAgent);
+userRoute.get('/allUser',userTokenVerify, allUser);
 
 module.exports = userRoute;
 

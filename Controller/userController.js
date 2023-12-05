@@ -81,7 +81,6 @@ module.exports = {
     },
     loginVerification: async (req, res) => {
         try {
-
             const { email } = req.body
             const { password } = req.body
 
@@ -135,7 +134,7 @@ module.exports = {
                 const token = jwt.sign({
                     id: registeredUser._id,
                     role: "user"
-                },
+                },  
 
                     process.env.USER_SECRET,
                     {
@@ -172,6 +171,7 @@ module.exports = {
 
 
             const { id } = req.params;
+            console.log(id)
 
             const User = await user.findOne({ _id: id })
             if (User) {
@@ -179,7 +179,7 @@ module.exports = {
             } else {
                 res.status(401).jsons({ message: "something went wrong" })
             }
-        } catch (error) {
+        } catch (error) { 
             console.log(error.message)
             res.status(500).json({ message: "Internal Server Error" })
         }
@@ -325,7 +325,7 @@ module.exports = {
             const Partner=await partner.findById({_id:id})
 
             if(Partner){
-                res.status(200).json({Partner})
+                res.status(200).json({Partner}) 
             }else{
                 res.status(401).json({message:"something wrong fetch data"})
             }
@@ -336,4 +336,30 @@ module.exports = {
             console.log(error.message)
         }
     },
+    allUser: async (req, res) => {
+        try {
+            const keyword = req.query.search
+                ? {
+                    $or: [
+                        { name: { $regex: req.query.search, $options: "i" } },
+                        { email: { $regex: req.query.search, $options: "i" } },
+                    ],
+                  }
+                : {};
+    
+    
+            const users = await user.find({ ...keyword, _id: { $ne: req.user.userId } });
+            console.log(users, "users");
+    
+            if (users) {
+                res.status(200).json({ users });
+            } else {
+                res.status(400).json({ message: "Something went wrong fetching the data" });
+            }
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    },
+    
 }

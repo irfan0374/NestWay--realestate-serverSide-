@@ -18,9 +18,11 @@ const userTokenVerify = async (req, res, next) => {
     }
     const verified = jwt.verify(token, process.env.USER_SECRET);
     req.user = verified;
+
     if (verified.role == 'user') {
 
-      const user = await User.findOne({ _id: verified.id });
+      const user = await User.findOne({ _id: verified.userId });
+  
     
       if (user.isBlocked) {
         return res.status(403).json({ message: 'User is Blocked' });
