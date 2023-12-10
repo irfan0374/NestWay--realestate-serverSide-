@@ -38,7 +38,7 @@ module.exports = {
     },
     userList: async (req, res) => {
         try {
-            const users = await User.find()
+            const users = await User.find().sort({ _id: -1 });
             res.status(200).json({ users })
         } catch (error) {
             console.log(error.message)
@@ -49,7 +49,7 @@ module.exports = {
     partnerList: async (req, res) => {
         try {
 
-            const partners = await Partner.find();
+            const partners = await Partner.find().sort({ _id: -1 });
             res.status(200).json({ partners });
         } catch (error) {
             console.log(error.message);
@@ -115,7 +115,7 @@ module.exports = {
     getProperty: async (req, res) => {
         try {
 
-            const property = await Property.find().populate("partnerId")
+            const property = await Property.find().sort({ _id: -1 }).populate("partnerId")
             res.status(200).json({ property })
         } catch (error) {
             console.log(error.message)
@@ -158,13 +158,17 @@ module.exports = {
     },
     premiumUSer:async(req,res)=>{
         try {
-            const res=await User.find({"subscription.planType":monthly||weekly})
-            console.log(res,"sssssssssssssssssssssssssssss")
-            
+            const usersWithSubscription = await User.find({
+                'subscription.planType': { $exists: true }
+              });
+              console.log(usersWithSubscription,"ehloooooooooooooooooooooooooooooooooooooooo")
+              if(usersWithSubscription){
+                res.status(200).json(usersWithSubscription)
+              }            
         } catch (error) {
-
+            res.status(200).json({message:"Internal Server Error"})
             console.log(error.message)
         }
-    }
+    },
 
 }

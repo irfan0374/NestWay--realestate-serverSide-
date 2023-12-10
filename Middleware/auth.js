@@ -17,11 +17,13 @@ const userTokenVerify = async (req, res, next) => {
       token = token.slice(7, token.length).trimLeft();
     }
     const verified = jwt.verify(token, process.env.USER_SECRET);
-    req.user = verified;
-
+    req.user = verified.id;
+  
+ 
     if (verified.role == 'user') {
 
-      const user = await User.findOne({ _id: verified.userId });
+      const user = await User.findOne({ _id: verified.id });
+      
   
     
       if (user.isBlocked) {
@@ -29,7 +31,7 @@ const userTokenVerify = async (req, res, next) => {
       } else {
         next();
       }
-    } else {
+    } else { 
       return res.status(403).json({ message: 'Access denied' });
     }
   } catch (error) {

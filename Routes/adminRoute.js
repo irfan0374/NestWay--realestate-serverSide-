@@ -14,7 +14,7 @@ adminRoute.patch('/kycApproval', adminTokenVerified, kycApproval)
 adminRoute.get('/getProperty',adminTokenVerified, getProperty)
 adminRoute.get('/findProperty/:propertyId', adminTokenVerified, findProperty)
 adminRoute.patch('/propertyApproval', adminTokenVerified, approvalProperty)
-adminRoute.get('/premiumUser', adminTokenVerified, premiumUSer)
+adminRoute.get('/fetchPremiumUser', adminTokenVerified, premiumUSer)
 
 
 module.exports = adminRoute

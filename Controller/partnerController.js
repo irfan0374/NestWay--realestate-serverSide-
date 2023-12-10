@@ -8,13 +8,13 @@ const otpmodel = require('../model/otp')
 let otp;
 const property = require('../model/propertyModel')
 const cloudinary = require('../utils/cloudinary')
-
+const buyerContact = require('../model/buyerContact')
 const securePassword = require('../utils/securepassword')
 const sendGmail = require('../utils/nodemailer')
 
 module.exports = {
     signup: async (req, res) => {
-    
+
         try {
             const { name, email, phone, password } = req.body
             const sPassword = await securePassword(password)
@@ -33,7 +33,7 @@ module.exports = {
                 otp = await sendGmail(partnerData.name, partnerData.email, partnerData._id)
                 res.status(200).json({
                     status: `otp has been sent to ${email}`,
-                    partnerData: partnerData, 
+                    partnerData: partnerData,
                     otpId: otp
                 })
             }
@@ -41,7 +41,7 @@ module.exports = {
         } catch (error) {
             console.log(error.message)
             res.status(500).json({ message: "internal server Error" })
-        } 
+        }
     },
     otpVerification: async (req, res) => {
         try {
@@ -55,7 +55,7 @@ module.exports = {
                 res.status(400).json({ message: "Otp is exipied" })
             }
             if (correctOtp === otp) {
-           
+
                 await otpmodel.deleteMany({ userId: partnerId })
                 await partner.updateOne({ _id: partnerId }, { $set: { isVerified: true } })
 
@@ -75,40 +75,40 @@ module.exports = {
 
             const { email, password } = req.body
             const Partner = await partner.findOne({ email: email })
-          
+
 
             if (!Partner) {
-                
-               return res.status(401).json({ message: "Email is incorrect Please check" })
-            }     
-            if (Partner.isVerified) { 
 
- 
+                return res.status(401).json({ message: "Email is incorrect Please check" })
+            }
+            if (Partner.isVerified) {
+
+
                 if (!Partner.isBlocked) {
 
-                    if(!Partner.adminApproved){
-                        res.status(401).json({message:"KYC verification in progress.Please wait."})
-                    }else if(Partner.adminApproved==="reject"){
-                        res.status(401).json({message:"your Kyc is not Approved"})
-                    }else{
-
-                   
-
-                    const comparePassword = await bcrypt.compare(password, Partner.password)
-                    if (comparePassword) {
-
-                        const token = jwt.sign({ name: Partner.name, email: Partner.email, partnerId: Partner._id, role: "partner" },
-                            process.env.PARTNER_SECRET,
-                            {
-                                expiresIn: "1hr"
-                            }
-                        )
-                    
-                        res.status(200).json({ Partner, token, message: `Welcome to ${partner.name}` })
+                    if (!Partner.adminApproved) {
+                        res.status(401).json({ message: "KYC verification in progress.Please wait." })
+                    } else if (Partner.adminApproved === "reject") {
+                        res.status(401).json({ message: "your Kyc is not Approved" })
                     } else {
-                        res.status(401).json({ message: "Password is incorrect" })
+
+
+
+                        const comparePassword = await bcrypt.compare(password, Partner.password)
+                        if (comparePassword) {
+
+                            const token = jwt.sign({ name: Partner.name, email: Partner.email, partnerId: Partner._id, role: "partner" },
+                                process.env.PARTNER_SECRET,
+                                {
+                                    expiresIn: "1hr"
+                                }
+                            )
+
+                            res.status(200).json({ Partner, token, message: `Welcome to ${partner.name}` })
+                        } else {
+                            res.status(401).json({ message: "Password is incorrect" })
+                        }
                     }
-                }
 
                 } else {
 
@@ -118,7 +118,7 @@ module.exports = {
 
                 res.status(401).json({ message: "Email is not verified" })
             }
-        
+
 
         } catch (error) {
             console.log(error.message)
@@ -128,8 +128,8 @@ module.exports = {
     partnerKycUpload: async (req, res) => {
         try {
             const { partnerId, kycImage } = req.body
-           const kycUpload=await cloudinary.uploader.upload(kycImage,{folder:"kycImage"})
-           
+            const kycUpload = await cloudinary.uploader.upload(kycImage, { folder: "kycImage" })
+
             const partners = await partner.findOneAndUpdate({ _id: partnerId }, { $set: { kycimage: kycUpload.secure_url } })
             if (partners) {
                 res.status(200).json({ message: "Kyc uploaded" })
@@ -142,20 +142,29 @@ module.exports = {
         }
     },
     addProperty: async (req, res) => {
-
         try {
-            const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location,featureField,numberOfPeople } = req.body
-        
+            const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location, featureField, numberOfPeople } = req.body
+    
             const uploadedPromises = propertyImage.map((image) => {
                 return cloudinary.uploader.upload(image, { folder: "propertyImage" })
-            })
-
-            // Await for all upload to complete the all uploads
-
-            const uploadedImage = await Promise.all(uploadedPromises)
-            // store the url in the Property image arr
+                    .catch(error => {
+                        // Handle individual upload errors
+                        console.error(`Error uploading image: ${error.message}`);
+                        return null; // Signal failure for this image
+                    });
+            });
+     
+            // Await for all uploads to complete
+            const uploadedImage = await Promise.all(uploadedPromises); 
+    
+            // Check if any of the uploads failed
+            if (uploadedImage.some(image => image === null)) {
+                return res.status(400).json({ message: "One or more images failed to upload" });
+            }
+    
+            // Extract the URLs from the successful uploads
             const PropertyImage = uploadedImage.map((image) => image.secure_url);
-
+    
             const Property = await property.create({
                 partnerId,
                 propertyFor: propertyFor,
@@ -164,23 +173,24 @@ module.exports = {
                 state,
                 city,
                 floor,
-                features:featureField,
+                features: featureField,
                 propertyBHK: bhk,
                 bathroom,
-                personCanStay:numberOfPeople,
+                personCanStay: numberOfPeople,
                 description,
                 location,
                 Price: price,
-                propertyImage:PropertyImage,
+                propertyImage: PropertyImage,
             });
-
+    
             res.status(200).json({ Property, message: "Property added successfully" })
-
+    
         } catch (error) {
-            console.log(error.message)
-            res.status(500).json({ message: "internal server error" })
+            console.error(error.message);
+            res.status(500).json({ message: "Internal server error" });
         }
     },
+    
     listProperty: async (req, res) => {
         try {
             const { partnerId } = req.params;
@@ -212,82 +222,82 @@ module.exports = {
             res.status(500).json({ message: "internal server error" })
         }
     },
-    findParnter:async(req,res)=>{
-        try{
+    findParnter: async (req, res) => {
+        try {
 
-            const email=req.partner.email
-         
-          const Partner=await partner.findOne({email:email})
-          if(Partner){
-            res.status(200).json({Partner})
-          }else{ 
-            res.status(401).json({message:"something went wrong"})
-          }
+            const email = req.partner.email
 
-        }catch(error){
-            res.status(500).json({message:"Internal server error"})
+            const Partner = await partner.findOne({ email: email })
+            if (Partner) {
+                res.status(200).json({ Partner })
+            } else {
+                res.status(401).json({ message: "something went wrong" })
+            }
+
+        } catch (error) {
+            res.status(500).json({ message: "Internal server error" })
 
 
             console.log(error.message)
         }
     },
-    partnerProfile:async(req,res)=>{
+    partnerProfile: async (req, res) => {
         try {
-            const {name,phone,partnerId}=req.body
-            const Partner=await partner.findOneAndUpdate({_id:partnerId},{$set:{name:name,phone:phone}})
-            if(Partner){
-                res.status(200).json({Partner})
-            }else{
-                res.status(401).json({message:"something went wrong"})
+            const { name, phone, partnerId } = req.body
+            const Partner = await partner.findOneAndUpdate({ _id: partnerId }, { $set: { name: name, phone: phone } })
+            if (Partner) {
+                res.status(200).json({ Partner })
+            } else {
+                res.status(401).json({ message: "something went wrong" })
             }
         } catch (error) {
             console.log(error.message)
         }
     },
-    partnerimage:async(req,res)=>{
+    partnerimage: async (req, res) => {
         try {
-            const {imageData,partnerId}=req.body
-            const profile=await cloudinary.uploader.upload(imageData,{folder:"partnerProfile"})
-            const Partner=await partner.findOneAndUpdate({_id:partnerId},{$set:{profile:profile.secure_url}})
-            if(Partner){
-                res.status(200).json({Partner})
-            }else{
-                res.status(401).json({message:"something went wrong"})
+            const { imageData, partnerId } = req.body
+            const profile = await cloudinary.uploader.upload(imageData, { folder: "partnerProfile" })
+            const Partner = await partner.findOneAndUpdate({ _id: partnerId }, { $set: { profile: profile.secure_url } })
+            if (Partner) {
+                res.status(200).json({ Partner })
+            } else {
+                res.status(401).json({ message: "something went wrong" })
             }
         } catch (error) {
-            res.status(500).json({message:"Internal server error"})
+            res.status(500).json({ message: "Internal server error" })
 
             console.log(error.message)
         }
     },
-    addDescription:async(req,res)=>{
-        try{
-            console.log(req.body,"req.body")
-            const {state,location ,description,partnerId}=req.body
-
-            const partnerData =await partner.findOneAndUpdate({_id:partnerId},{$set:{"aboutMe.state":state,"aboutMe.location":location,"aboutMe.description":description}})
-            if(partnerData){
-                res.status(200).json({message:"Description added"})
-            }else{
-                res.status(401).json({message:"something went wrong"})
-            }
-        }catch(error){
-            console.log(error.message)
-            res.status(500).json({message:"Internal server error"})
-        }
-    },
-    findProperty:async (req,res)=>{
+    addDescription: async (req, res) => {
         try {
-           const {id}=req.params 
-           const Property=await property.findById({_id:id})
-           if(Property){
-            res.status(200).json({Property})
-           }else{
-            res.status(401).json({message:"Internal server error"})   
-           }
+            console.log(req.body, "req.body")
+            const { state, location, description, partnerId } = req.body
 
-        } catch (error) { 
-            res.status(500).json({message:"Internal server error"})
+            const partnerData = await partner.findOneAndUpdate({ _id: partnerId }, { $set: { "aboutMe.state": state, "aboutMe.location": location, "aboutMe.description": description } })
+            if (partnerData) {
+                res.status(200).json({ message: "Description added" })
+            } else {
+                res.status(401).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            console.log(error.message)
+            res.status(500).json({ message: "Internal server error" })
+        }
+    },
+    findProperty: async (req, res) => {
+        try {
+            const { id } = req.params
+            const Property = await property.findById({ _id: id })
+            if (Property) {
+                res.status(200).json({ Property })
+            } else {
+                res.status(401).json({ message: "Internal server error" })
+            }
+
+        } catch (error) {
+            res.status(500).json({ message: "Internal server error" })
             console.log(error.message)
         }
     },
@@ -295,32 +305,32 @@ module.exports = {
         try {
             const { id } = req.params;
             const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, location, featureData, numberOfPeople } = req.body;
-            console.log(featureData,"featureField")
-    
+
             let existingImage = [];
             let existingProperty = await property.findById({ _id: id });
-    
+
             if (propertyImage.length === 0) {
                 existingImage = existingProperty.propertyImage;
             } else {
                 const uploaderPromise = propertyImage.map((image) => {
                     return cloudinary.uploader.upload(image, { folder: "propertyImage" });
                 });
-    
-    
+
+
                 const uploadImage = await Promise.all(uploaderPromise);
-    
+              
+
                 if (existingProperty && existingProperty.propertyImage && existingProperty.propertyImage.length > 0) {
                     existingImage = existingProperty.propertyImage;
                 }
-    
+ 
                 let propertyImg = uploadImage.map((data) => data.secure_url);
-    
+
                 for (let i = 0; i < propertyImg.length; i++) {
                     existingImage.push(propertyImg[i]);
                 }
             }
-    
+
             const Property = await property.findOneAndUpdate(
                 { _id: id },
                 {
@@ -338,11 +348,11 @@ module.exports = {
                         location,
                         Price: price,
                         propertyImage: existingImage,
-                        personCanStay:numberOfPeople,
+                        personCanStay: numberOfPeople,
                     },
                 }
             );
-    
+
             if (Property) {
                 res.status(200).json({ Property });
             } else {
@@ -353,30 +363,49 @@ module.exports = {
             res.status(500).json({ message: "Internal server error" });
         }
     },
-    
-    deletepropertyImage:async(req,res)=>{
-        try {
-            const {imgsrc}=req.body
-            const {id}=req.params
-            
-            const publicId=imgsrc.match(/\/v\d+\/(.+?)\./)[1];
-            console.log(publicId,"publicId")
 
-            const deletionResult=await cloudinary.uploader.destroy(publicId,{folder:"propertyImage"})
-        
-            if(deletionResult.result==='ok'){
-                const updateData=await property.findByIdAndUpdate({_id:id},{$pull:{propertyImage:imgsrc}},{new:true})
-                if(!updateData){
-                    return res.status(404).json({message:"Property not found"})
+    deletepropertyImage: async (req, res) => {
+        try {
+            console.log("hello image")
+
+            const { imgsrc } = req.body
+            console.log(imgsrc,"img")
+            const { id } = req.params
+
+            const matchResult = await imgsrc.match(/\/v\d+\/(.+?)\./);
+            const publicId = matchResult[1]; 
+
+            const deletionResult = await cloudinary.uploader.destroy(publicId, { folder: "propertyImage" })
+
+            if (deletionResult.result === 'ok') {
+                const updateData = await property.findByIdAndUpdate({ _id: id }, { $pull: { propertyImage: imgsrc } }, { new: true })
+                if (!updateData) {
+                    return res.status(404).json({ message: "Property not found" })
                 }
-                res.status(200).json({updateData,message:"Image remove successfully"})
-            }else{
+                res.status(200).json({ updateData, message: "Image remove successfully" })
+            } else {
                 console.error(`failed to remove the Image${imgsrc}from cloudinary`)
             }
-            
+ 
         } catch (error) {
             console.log(error.message)
-            res.status(500).json({message:"Internal server error"})
+            res.status(500).json({ message: "Internal server error" })
         }
-    }
+    },
+    fetchBuyer: async (req, res) => {
+        try {
+            const { partnerId } = req.params
+            console.log(partnerId)
+            const buyer = await buyerContact.find({ partnerId: partnerId })
+            if (buyer) {
+                res.status(200).json({ buyer })
+            } else {
+                res.status(404).json({ message: "something went wrong in fetch data" })
+            }
+
+        } catch (error) {
+            res.status(500).json({ message: "Internal server Error" })
+            console.log(error.message)
+        }
+    },
 }   

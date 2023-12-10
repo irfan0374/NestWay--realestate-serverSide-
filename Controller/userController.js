@@ -11,20 +11,18 @@ const user = require('../model/userModel');
 const property = require('../model/propertyModel')
 const stripe = require('stripe')('sk_test_51OFr1pSB3NLla9eM1vE5JuNyD4fIMDGfyLEn6WZoaJNUzhZhKMzONjIuZWEQj8DZyprUuykNLJIRxWLXiadQgYqe00HEwuW6rM')
 const cloudinary = require('../utils/cloudinary')
-const partner=require('../model/PartnerModel')
-const buyerDetails=require('../model/buyerContact')
-const contactAgent=require('../utils/ContactAgent')
-
-
+const partner = require('../model/PartnerModel')
+const buyerDetails = require('../model/buyerContact')
+const contactAgent = require('../utils/ContactAgent')
 const securePassword = require('../utils/securepassword')
+
 module.exports = {
 
     userRegistration: async (req, res) => {
+        console.log("user loginnnn")
+
         try {
-
-
             const { name, email, phone, password } = req.body
-
             const sPassword = await securePassword(password)
             const exsist = await user.findOne({ $or: [{ email: email }, { phone: phone }] })
             if (exsist) {
@@ -46,8 +44,6 @@ module.exports = {
                         userData: userData,
                         otpId: otpId
                     })
-
-
             }
 
         } catch (error) {
@@ -60,7 +56,7 @@ module.exports = {
         try {
             const { otp, userId } = req.body
             const findOtp = await otpmodel.find({ userId: userId })
-            const { expiresAt } = findOtp[findOtp.length - 1] 
+            const { expiresAt } = findOtp[findOtp.length - 1]
             const correctOtp = findOtp[findOtp.length - 1].otp
 
             if (correctOtp && expiresAt < Date.now()) {
@@ -83,10 +79,7 @@ module.exports = {
         try {
             const { email } = req.body
             const { password } = req.body
-
             const User = await user.findOne({ email: email })
-            console.log(User)
-
             if (!User) {
                 return res.status(401).json({ message: "User is not Registered" })
             }
@@ -112,9 +105,6 @@ module.exports = {
             } else {
                 res.status(400).json({ message: "Email is not verified" })
             }
-
-
-
         } catch (error) {
             console.log(error.message);
             res.status(500).json({ message: "Internal Server Error" })
@@ -123,10 +113,7 @@ module.exports = {
     UserGoolgleLogin: async (req, res) => {
         try {
             const { userEmail } = req.body
-
             const registeredUser = await user.findOne({ email: userEmail })
-            console.log(registeredUser)
-
             if (!registeredUser) {
                 res.status(400).json({ message: "user is not exists" })
             } else {
@@ -134,27 +121,22 @@ module.exports = {
                 const token = jwt.sign({
                     id: registeredUser._id,
                     role: "user"
-                },  
+                },
 
                     process.env.USER_SECRET,
                     {
                         expiresIn: "1hrs"
                     }
                 );
-
-
                 res.status(200).json({ token, registeredUser, message: `Welcome ${registeredUser.name}` });
             }
-
         } catch (error) {
             return res.status(500).json({ message: "internal server Error" })
         }
     },
     propertyDetail: async (req, res) => {
         try {
-
             const { propertyId } = req.params;
-            console.log(propertyId)
             const Property = await property.findOne({ _id: propertyId })
             if (Property) {
                 res.status(200).json({ Property })
@@ -168,18 +150,14 @@ module.exports = {
     },
     findUser: async (req, res) => {
         try {
-
-
             const { id } = req.params;
-            console.log(id)
-
             const User = await user.findOne({ _id: id })
             if (User) {
                 res.status(200).json({ User })
             } else {
                 res.status(401).jsons({ message: "something went wrong" })
             }
-        } catch (error) { 
+        } catch (error) {
             console.log(error.message)
             res.status(500).json({ message: "Internal Server Error" })
         }
@@ -226,6 +204,7 @@ module.exports = {
     },
     rentProperty: async (req, res) => {
         try {
+
             const rentProperty = await property.find({ propertyFor: "rent", verificationStatus: "approve" }).populate("partnerId")
 
             if (rentProperty) {
@@ -238,7 +217,7 @@ module.exports = {
             console.log(error.message)
             res.status(500).json({ message: "Internal Server Error" })
         }
-    }, 
+    },
     saleProperty: async (req, res) => {
         try {
 
@@ -258,7 +237,7 @@ module.exports = {
 
 
             const stripe = require('stripe')('sk_test_51OFr1pSB3NLla9eM1vE5JuNyD4fIMDGfyLEn6WZoaJNUzhZhKMzONjIuZWEQj8DZyprUuykNLJIRxWLXiadQgYqe00HEwuW6rM');
-            const { prices, User } = req.body
+            const { prices } = req.body
             const subscriptionType = prices.interval
 
 
@@ -286,53 +265,53 @@ module.exports = {
             const { id } = req.params
             const { typeOfSub } = req.body
             const updatePremium = await user.findOneAndUpdate({ _id: id }, { $set: { "subscription.planType": typeOfSub } })
-            
+
             if (updatePremium) {
-                res.status(200).json({ message: "Updated to premium account" }) 
+                res.status(200).json({ message: "Updated to premium account" })
             } else {
                 res.status(200).json({ message: "something went wrong" })
             }
 
         } catch (error) {
-            res.status(500).json({ message: "Internal server Error" }) 
+            res.status(500).json({ message: "Internal server Error" })
             console.log(error.message)
         }
     },
-    contactAgent:async(req,res)=>{
-        try { 
-            const {name,phone,email,description,partnerId}=req.body
-            const Partner=await partner.findById({_id:partnerId})
-          
-            const partnerEmail=Partner.email
-            const partnerName=Partner.name
+    contactAgent: async (req, res) => {
+        try {
+            const { name, phone, email, description, partnerId } = req.body
+            const Partner = await partner.findById({ _id: partnerId })
+
+            const partnerEmail = Partner.email
+            const partnerName = Partner.name
             const buyerData = new buyerDetails({
                 partnerId: partnerId,
-                buyerName:name,
+                buyerName: name,
                 buyerEmail: email,
                 buyerPhone: phone,
-                description:description
+                description: description
             })
             const buyer = await buyerData.save()
-            const sentMailtoAgent=await contactAgent(name,phone,email,partnerEmail,partnerName) 
+            const sentMailtoAgent = await contactAgent(name, phone, email, partnerEmail, partnerName)
         } catch (error) {
-            res.status(500).json({message:"Internal Server Error"})
+            res.status(500).json({ message: "Internal Server Error" })
             console.log(error.message)
         }
     },
-    findPartner:async(req,res)=>{
+    findPartner: async (req, res) => {
         try {
-            const {id}=req.params
-            const Partner=await partner.findById({_id:id})
+            const { id } = req.params
+            const Partner = await partner.findById({ _id: id })
 
-            if(Partner){
-                res.status(200).json({Partner}) 
-            }else{
-                res.status(401).json({message:"something wrong fetch data"})
+            if (Partner) {
+                res.status(200).json({ Partner })
+            } else {
+                res.status(401).json({ message: "something wrong fetch data" })
             }
 
-            
+
         } catch (error) {
-            res.status(500).json({message:"Internal server error"}) 
+            res.status(500).json({ message: "Internal server error" })
             console.log(error.message)
         }
     },
@@ -344,13 +323,13 @@ module.exports = {
                         { name: { $regex: req.query.search, $options: "i" } },
                         { email: { $regex: req.query.search, $options: "i" } },
                     ],
-                  }
+                }
                 : {};
-    
-    
+
+
             const users = await user.find({ ...keyword, _id: { $ne: req.user.userId } });
-            console.log(users, "users");
-    
+
+
             if (users) {
                 res.status(200).json({ users });
             } else {
@@ -361,5 +340,124 @@ module.exports = {
             res.status(500).json({ message: "Internal server error" });
         }
     },
-    
+    RentData: async (req, res) => {
+        try {
+            const { type } = req.params
+            const Result = await property.find({
+                verificationStatus: "approve",
+                propertyFor: "rent",
+                propertyType: type,
+            }).populate("partnerId")
+
+            if (Result) {
+                res.status(200).json({ Result })
+            } else {
+                res.status(404).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            res.status(500).json({ message: "Internal server Error" })
+
+            console.log(error.message)
+        }
+    },
+
+    SalesData: async (req, res) => {
+        try {
+            const { type } = req.params
+            const Result = await property.find({
+                verificationStatus: "approve",
+                propertyFor: "sale",
+                propertyType: type,
+            }).populate("partnerId")
+
+            if (Result) {
+                res.status(200).json({ Result })
+            } else {
+                res.status(404).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            res.status(500).json({ message: "Internal server Error" })
+
+            console.log(error.message)
+        }
+    },
+    RentForBudget: async (req, res) => {
+        try {
+
+            const { type } = req.params
+            const Result = await property.find({
+                verificationStatus: "approve",
+                propertyFor: "rent",
+                Price: {
+                    $lte: type
+                }
+            }).populate("partnerId");
+
+            if (Result) {
+                res.status(200).json({ Result })
+            } else {
+                res.status(404).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+    SalesForBudget: async (req, res) => {
+        try {
+            console.log("ehllooo")
+
+            const { type } = req.params
+            const Result = await property.find({
+                verificationStatus: "approve",
+                propertyFor: "sales",
+                Price: {
+                    $lte: type
+                }
+            }).populate("partnerId");
+
+            if (Result) {
+                res.status(200).json({ Result })
+            } else {
+                res.status(404).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+    propertyByBhkRent: async (req, res) => {
+        try {
+            const { type } = req.params
+            const Result = await property.find({
+                verificationStatus: "approve",
+                propertyFor: "rent",
+                propertyBHK: type
+            }).populate("partnerId");
+            if (Result) {
+                res.status(200).json({ Result })
+            } else {
+                res.status(404).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+    propertyByBhkSales: async (req, res) => {
+        try {
+
+            const { type } = req.params
+            const Result = await property.find({
+                verificationStatus: "approve",
+                propertyFor: "sales",
+                propertyBHK: type
+            }).populate("partnerId");
+            if (Result) {
+                res.status(200).json({ Result })
+            } else {
+                res.status(404).json({ message: "something went wrong" })
+            }
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+
 }

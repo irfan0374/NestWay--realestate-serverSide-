@@ -1,7 +1,7 @@
 const express = require('express');
 const userRoute = express()
 const { userTokenVerify } = require('../Middleware/auth');
-const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser } = require('../Controller/userController');
+const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser,RentData,SalesData,RentForBudget,SalesForBudget,propertyByBhkRent,propertyByBhkSales } = require('../Controller/userController');
 
 userRoute.post('/signup', userRegistration);
 userRoute.post('/otpVerify', otpVerify);
@@ -18,6 +18,13 @@ userRoute.patch('/premiumUpdate/:id', premiumUpdate);
 userRoute.get('/findPartner/:id', findPartner);
 userRoute.post('/sentMailtoAgent', contactAgent);
 userRoute.get('/allUser',userTokenVerify, allUser);
+userRoute.get('/rentData/:type', RentData);
+userRoute.get('/salesData/:type', SalesData);
+userRoute.get('/budgetRent/:type', RentForBudget);
+userRoute.get('/budgetSales/:type', SalesForBudget);
+userRoute.get('/propertyByBhkRent/:type', propertyByBhkRent);
+userRoute.get('/propertyByBhkSales/:type', propertyByBhkSales);
+
 
 module.exports = userRoute;
 
