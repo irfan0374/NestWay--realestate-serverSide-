@@ -4,6 +4,7 @@ require('dotenv').config()
 const otpGenerator = require('otp-generator')
 let otpId;
 const bcrypt = require("bcrypt")
+const nodemailer = require("nodemailer");
 
 const sendEmail = require("../utils/nodemailer")
 const otpmodel = require('../model/otp')
@@ -77,17 +78,18 @@ module.exports = {
     },
     loginVerification: async (req, res) => {
         try {
-            const { email } = req.body
-            const { password } = req.body
+            const { email, password } = req.body
+
             const User = await user.findOne({ email: email })
             if (!User) {
                 return res.status(401).json({ message: "User is not Registered" })
             }
-            if (User.isEmailVerified) {
+            if (User?.isEmailVerified) {
                 if (!User?.isBlocked) {
                     const correctPassword = await bcrypt.compare(password, User.password)
                     if (correctPassword) {
-                        const token = jwt.sign({ name: User.name, email: User.email, userId: User._id, role: "user" },
+                        const token = jwt.sign({ name: User.name, email: User.email, id: User._id, role: "user" },
+
                             process.env.USER_SECRET,
                             {
                                 expiresIn: "1hr"
@@ -456,6 +458,132 @@ module.exports = {
                 res.status(404).json({ message: "something went wrong" })
             }
         } catch (error) {
+            console.log(error.message)
+        }
+    },
+    PasswordChange: async (req, res) => {
+        try {
+            const { oldPassword, newPassword, userId } = req.body
+
+            const User = await user.findById({ _id: userId })
+            const correctPassword = await bcrypt.compare(oldPassword, User.password)
+            if (correctPassword) {
+                const sPassword = await securePassword(newPassword)
+                console.log(sPassword, "fdsaasdf")
+                const changePassword = await user.findOneAndUpdate({ _id: userId }, { $set: { password: sPassword } })
+
+                if (changePassword) {
+                    console.log("hello change passord")
+                    res.status(200).json({ message: "Password Updated" })
+                } else {
+                    res.status(400).json({ message: "something went wrong " })
+                }
+            } else {
+                console.log("hellooooooo")
+                res.status(400).json({ message: "Old password is incorrect" })
+            }
+        } catch (error) {
+            res.status(500).json({ message: "Internal server Error" })
+            console.log(error.message)
+        }
+    },
+
+    forgotPassword: async (req, res) => {
+        try {
+            const { email } = req.params
+            const User = await user.findOne({ email: email })
+            if (!User) {
+                return res.status(404).json({ message: "User is not registered" })
+            }
+            const token = jwt.sign({ id: User._id }, process.env.USER_SECRET, { expiresIn: "5m" })
+
+            let transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: "nestway2266@gmail.com",
+                    pass: "sizspjldgnpxzmpx"
+                },
+            });
+            const mailOptions = {
+                from: process.env.SMTP_MAIL,
+                to: email,
+                subject: "Forgot Password",
+                text: `http://localhost:5173/resetPassword/${User._id}/${token}`
+            }
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.error("Error sending email:", error);
+                    return res
+                        .status(500)
+                        .json({ message: "Failed to send email for password reset." });
+                } else {
+                    console.log("Email sent:", info.response);
+                    return res
+                        .status(200)
+                        .json({ message: "Email sent successfully for password reset." });
+                }
+            });
+
+
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+    resetpassword: async (req, res) => {
+        try {
+            const { password } = req.body
+            const { id, token } = req.params
+            console.log(password, id, token, "hello reset backend")
+            const User = await user.findById({ _id: id })
+            if (!User) {
+                return res.status(401).json({ message: "User is not found" })
+            }
+            try {
+                const verify = jwt.verify(token, process.env.USER_SECRET)
+                if (verify) {
+                    const hashedPassword = await bcrypt.hash(password, 10)
+                    await user.findByIdAndUpdate({ _id: id }, { $set: { password: hashedPassword } })
+                    return res.status(200).json({ message: "Succesfully changed Password" })
+                }
+
+            } catch (error) {
+                res.status(400).json({ message: "somthing wrong in token" })
+                console.log(error.message)
+            }
+
+        } catch (error) {
+            res.status(500).json({ message: "Internal Server Error" })
+            console.log(error.message)
+        }
+    },
+    getThePropertyType: async (req, res) => {
+        try {
+            const propertyFor = await property.distinct("propertyFor")
+            const propertyType = await property.distinct("propertyType")
+            console.log(propertyFor, propertyType, "propertyTypeand propertyFor")
+            if (propertyFor && propertyType) {
+                res.status(200).json({ propertyFor, propertyType })
+            } else {
+                res.status(401).json({ message: "Something went wrong" })
+            }
+        } catch (error) {
+            res.status(500).json({ message: "Internal Server Error" })
+            console.log(error.message)
+        }
+    },
+    searchFilter: async (req, res) => {
+        try {
+            const { propertytype, propertfor, pickuplocation } = req.body
+            const Property = await property.find({ propertyType: propertytype, propertyFor: propertfor, location: pickuplocation })
+           
+            if (!Property) {
+                return res.status(401).json({ message: " Your request has no matching properties" })
+            } else {
+                res.status(201).json({ Property })
+            }
+
+        } catch (error) {
+            res.status(500).json({ message: "Internal Server Error" })
             console.log(error.message)
         }
     },

@@ -7,7 +7,7 @@ module.exports={
     partnerData:async(req,res)=>{
         try{
 
-            console.log(req.params,"idn unddkfsa")
+         
             const {id}=req.params
             const result=await Partner.findOne({_id:id})
             if(result){

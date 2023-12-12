@@ -1,11 +1,11 @@
 const express = require('express');
 const userRoute = express()
 const { userTokenVerify } = require('../Middleware/auth');
-const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser,RentData,SalesData,RentForBudget,SalesForBudget,propertyByBhkRent,propertyByBhkSales } = require('../Controller/userController');
+const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser,RentData,SalesData,RentForBudget,SalesForBudget,propertyByBhkRent,propertyByBhkSales,PasswordChange,forgotPassword,resetpassword,getThePropertyType,searchFilter } = require('../Controller/userController');
 
 userRoute.post('/signup', userRegistration);
 userRoute.post('/otpVerify', otpVerify);
-userRoute.post('/userLogin', loginVerification);
+userRoute.post('/userLogin',loginVerification);
 userRoute.post('/googleUserLogin', UserGoolgleLogin);
 userRoute.get('/propertyDetails/:propertyId', propertyDetail);
 userRoute.get('/findUser/:id', userTokenVerify, findUser);
@@ -24,6 +24,11 @@ userRoute.get('/budgetRent/:type', RentForBudget);
 userRoute.get('/budgetSales/:type', SalesForBudget);
 userRoute.get('/propertyByBhkRent/:type', propertyByBhkRent);
 userRoute.get('/propertyByBhkSales/:type', propertyByBhkSales);
+userRoute.patch('/passwordChange', PasswordChange);
+userRoute.get('/forgotPassword/:email', forgotPassword);
+userRoute.patch('/resetPassword/:id/:token', resetpassword);
+userRoute.get('/getThePropertyType', getThePropertyType);
+userRoute.post('/Search', searchFilter);
 
 
 module.exports = userRoute;

@@ -145,6 +145,8 @@ module.exports = {
         try {
             const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location, featureField, numberOfPeople } = req.body
     
+            console.log(location,"location form addproperty")
+
             const uploadedPromises = propertyImage.map((image) => {
                 return cloudinary.uploader.upload(image, { folder: "propertyImage" })
                     .catch(error => {
