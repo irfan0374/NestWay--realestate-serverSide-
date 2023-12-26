@@ -17,15 +17,12 @@ const userTokenVerify = async (req, res, next) => {
       token = token.slice(7, token.length).trimLeft();
     }
     const verified = jwt.verify(token, process.env.USER_SECRET);
-    console.log(verified)
     req.user = verified.id;
-   
   
- 
     if (verified.role == 'user') {
 
       const user = await User.findOne({ _id: verified.id });
-        console.log(user,"userrrrr")
+
       
   
     
@@ -64,7 +61,7 @@ const adminTokenVerified = async (req, res, next) => {
   } catch (error) {
     console.log(error.message);
   }
-};
+}; 
 const partnerTokenVerified = async (req, res, next) => {
   try {
     let token = req.headers.authorization;

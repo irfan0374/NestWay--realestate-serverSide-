@@ -87,6 +87,7 @@ module.exports={
 
       createChat:async(req,res)=>{
         try {
+          
             const{userId,partnerId}=req.body
             const chatExist = await Chat.findOne({
                 members: {
@@ -104,6 +105,9 @@ module.exports={
                   ],
                 });
                 await newChat.save();
+              }else{
+                const data="alreadyExist"
+                res.status(200).json({data})
               }
             
         } catch (error) {
@@ -157,70 +161,3 @@ module.exports={
 
 }
 
-
-
-
-
-
-
-// module.exports = {
-//     accessChat: async (req, res) => {
-//         console.log("dd")
-
-//         const { userId } = req.body
-//         if (!userId) {
-//             console.log("userId param mot sent with request")
-//         }
-
-//         var isChat = await Chat.find({
-//             isGroupChat: false,
-//             $and: [
-//                 { users: { $elemMatch: { $eq: req.user.userId } } },
-//                 { users: { $elemMatch: { $eq: userId } } }
-//             ]
-//         }).populate("users", "-password").populate("latestMessage");
-
-//         isChat = await User.populate(isChat, {
-//             path: 'latestMessage.sender',
-//             select: "name pic email",
-//         })
-//         if (isChat.length > 0) {
-//             res.send(isChat[0])
-//         } else {
-//             var chatData = {
-//                 chatName: "sender",
-//                 isGroupChat: false,
-//                 users: [req.user.userId, userId]
-
-//             }
-//             try {
-//                 const createChat = await Chat.create(chatData)
-
-//                 const fullChat = await Chat.findOne({ _id: createChat._id }).populate("users", '-password')
-//                 res.status(200).send({ fullChat })
-//             } catch (error) {
-//                 res.status(400).json({ message: "something went wrong" })
-//                 throw new Error(error.message)
-//             }
-//         }
-
-
-//     },
-//     fetchChat:async(req,res)=>{
-//         try{
-            
-//             Chat.find({users:{$elemMatch:{$eq:req.user.userId}}})
-            
-//             .populate("users","-password").populate("latestMessage").sort({updatedAt:-1}).then(async(result)=>{
-//                 result= await User.populate(result, {
-//                     path: 'latestMessage.sender',
-//                     select: "name pic email",
-//                 })
-//                 res.status(200).json({result})
-//             })
-
-//         }catch(error){
-//             console.log(error.message)
-//         }
-//     }
-// }

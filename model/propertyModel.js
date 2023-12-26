@@ -20,7 +20,7 @@ const PropertyModel = new mongoose.Schema({
     },
     propertyType: {
         type: String,
-        required: true
+        required: true 
     },
     state: {
         type: String,
@@ -85,6 +85,6 @@ const PropertyModel = new mongoose.Schema({
                 },
             },
     ],
-});
+},{timestamps:true});
 const property=mongoose.model("property",PropertyModel)
 module.exports=property

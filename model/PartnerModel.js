@@ -49,7 +49,7 @@ const PartnerModel = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-});
+},{timestamps:true});
 
 const partnerSchema = mongoose.model('Partner', PartnerModel);
 

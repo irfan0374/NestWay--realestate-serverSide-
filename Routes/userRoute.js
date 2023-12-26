@@ -1,7 +1,7 @@
 const express = require('express');
 const userRoute = express()
 const { userTokenVerify } = require('../Middleware/auth');
-const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser,RentData,SalesData,RentForBudget,SalesForBudget,propertyByBhkRent,propertyByBhkSales,PasswordChange,forgotPassword,resetpassword,getThePropertyType,searchFilter } = require('../Controller/userController');
+const { userRegistration, otpVerify, loginVerification, UserGoolgleLogin, propertyDetail, findUser, updateProfile, rentProperty, profileImage, saleProperty, subscription,premiumUpdate,findPartner,contactAgent,allUser,RentData,SalesData,RentForBudget,SalesForBudget,propertyByBhkRent,propertyByBhkSales,PasswordChange,forgotPassword,resetpassword,getThePropertyType,searchFilter,resentOtp } = require('../Controller/userController');
 
 userRoute.post('/signup', userRegistration);
 userRoute.post('/otpVerify', otpVerify);
@@ -29,6 +29,7 @@ userRoute.get('/forgotPassword/:email', forgotPassword);
 userRoute.patch('/resetPassword/:id/:token', resetpassword);
 userRoute.get('/getThePropertyType', getThePropertyType);
 userRoute.post('/Search', searchFilter);
+userRoute.post('/resentOtp', resentOtp);
 
 
 module.exports = userRoute;

@@ -20,14 +20,17 @@ const securePassword = require('../utils/securepassword')
 module.exports = {
 
     userRegistration: async (req, res) => {
-        console.log("user loginnnn")
 
         try {
             const { name, email, phone, password } = req.body
+            console.log(req.body,"vertna")
+   
             const sPassword = await securePassword(password)
             const exsist = await user.findOne({ $or: [{ email: email }, { phone: phone }] })
+            console.log(exsist)
             if (exsist) {
-                res.status(401).json({ status: "User already registered with this email" })
+              
+                 return res.status(400).json({ message: "Already registered with this details" })
 
             } else {
                 const User = new user({
@@ -37,6 +40,7 @@ module.exports = {
                     password: sPassword,
                 })
                 const userData = await User.save()
+           
 
                 otpId = await sendEmail(userData.name, userData.email, userData._id)
                 res.status(201)
@@ -44,7 +48,7 @@ module.exports = {
                         status: `otp has been sent to ${email}`,
                         userData: userData,
                         otpId: otpId
-                    })
+                    }) 
             }
 
         } catch (error) {
@@ -76,7 +80,7 @@ module.exports = {
             console.log(err.message)
         }
     },
-    loginVerification: async (req, res) => {
+    loginVerification: async(req, res) => {
         try {
             const { email, password } = req.body
 
@@ -207,7 +211,7 @@ module.exports = {
     rentProperty: async (req, res) => {
         try {
 
-            const rentProperty = await property.find({ propertyFor: "rent", verificationStatus: "approve" }).populate("partnerId")
+            const rentProperty = await property.find({ propertyFor: "rent", verificationStatus: "approve", propertyStatus: { $ne: true } }).populate("partnerId")
 
             if (rentProperty) {
                 res.status(200).json({ rentProperty })
@@ -223,7 +227,7 @@ module.exports = {
     saleProperty: async (req, res) => {
         try {
 
-            const saleProperty = await property.find({ propertyFor: "sale", verificationStatus: "approve" }).populate("partnerId")
+            const saleProperty = await property.find({ propertyFor: "sale", verificationStatus: "approve", propertyStatus: { $ne: true } }).populate("partnerId")
             if (saleProperty) {
                 res.status(200).json({ saleProperty })
             } else {
@@ -349,6 +353,7 @@ module.exports = {
                 verificationStatus: "approve",
                 propertyFor: "rent",
                 propertyType: type,
+                propertyStatus: { $ne: true }
             }).populate("partnerId")
 
             if (Result) {
@@ -372,6 +377,7 @@ module.exports = {
                 propertyType: type,
             }).populate("partnerId")
 
+
             if (Result) {
                 res.status(200).json({ Result })
             } else {
@@ -387,13 +393,26 @@ module.exports = {
         try {
 
             const { type } = req.params
-            const Result = await property.find({
-                verificationStatus: "approve",
-                propertyFor: "rent",
-                Price: {
-                    $lte: type
-                }
-            }).populate("partnerId");
+            let Result
+            if(type=="5000000"){
+                console.log("hello result")
+                 Result = await property.find({
+                    verificationStatus: "approve",
+                    propertyFor: "rent",
+                    Price: {
+                        $gte: type
+                    },propertyStatus: { $ne: true }
+                }).populate("partnerId");
+                console.log(Result,"result rent")
+            }else{
+                 Result = await property.find({
+                    verificationStatus: "approve",
+                    propertyFor: "rent",
+                    Price: {
+                        $lte: type
+                    },propertyStatus: { $ne: true }
+                }).populate("partnerId");
+            }
 
             if (Result) {
                 res.status(200).json({ Result })
@@ -406,17 +425,29 @@ module.exports = {
     },
     SalesForBudget: async (req, res) => {
         try {
-            console.log("ehllooo")
+           
 
             const { type } = req.params
-            const Result = await property.find({
-                verificationStatus: "approve",
-                propertyFor: "sales",
-                Price: {
-                    $lte: type
-                }
-            }).populate("partnerId");
-
+            let Result
+            if(type=="5000000"){
+                console.log("hello result")
+                 Result = await property.find({
+                    verificationStatus: "approve",
+                    propertyFor: "rent",
+                    Price: {
+                        $gte: type
+                    },propertyStatus: { $ne: true }
+                }).populate("partnerId");
+                console.log(Result,"result rent")
+            }else{
+                 Result = await property.find({
+                    verificationStatus: "approve",
+                    propertyFor: "rent",
+                    Price: {
+                        $lte: type
+                    },propertyStatus: { $ne: true }
+                }).populate("partnerId");
+            }
             if (Result) {
                 res.status(200).json({ Result })
             } else {
@@ -432,7 +463,8 @@ module.exports = {
             const Result = await property.find({
                 verificationStatus: "approve",
                 propertyFor: "rent",
-                propertyBHK: type
+                propertyBHK: type,
+                propertyStatus: { $ne: true }
             }).populate("partnerId");
             if (Result) {
                 res.status(200).json({ Result })
@@ -450,7 +482,8 @@ module.exports = {
             const Result = await property.find({
                 verificationStatus: "approve",
                 propertyFor: "sales",
-                propertyBHK: type
+                propertyBHK: type,
+                propertyStatus: { $ne: true }
             }).populate("partnerId");
             if (Result) {
                 res.status(200).json({ Result })
@@ -469,17 +502,17 @@ module.exports = {
             const correctPassword = await bcrypt.compare(oldPassword, User.password)
             if (correctPassword) {
                 const sPassword = await securePassword(newPassword)
-                console.log(sPassword, "fdsaasdf")
+             
                 const changePassword = await user.findOneAndUpdate({ _id: userId }, { $set: { password: sPassword } })
 
                 if (changePassword) {
-                    console.log("hello change passord")
+           
                     res.status(200).json({ message: "Password Updated" })
                 } else {
                     res.status(400).json({ message: "something went wrong " })
                 }
             } else {
-                console.log("hellooooooo")
+          
                 res.status(400).json({ message: "Old password is incorrect" })
             }
         } catch (error) {
@@ -517,7 +550,7 @@ module.exports = {
                         .status(500)
                         .json({ message: "Failed to send email for password reset." });
                 } else {
-                    console.log("Email sent:", info.response);
+                    ("Emconsole.logail sent:", info.response);
                     return res
                         .status(200)
                         .json({ message: "Email sent successfully for password reset." });
@@ -560,7 +593,6 @@ module.exports = {
         try {
             const propertyFor = await property.distinct("propertyFor")
             const propertyType = await property.distinct("propertyType")
-            console.log(propertyFor, propertyType, "propertyTypeand propertyFor")
             if (propertyFor && propertyType) {
                 res.status(200).json({ propertyFor, propertyType })
             } else {
@@ -571,21 +603,42 @@ module.exports = {
             console.log(error.message)
         }
     },
-    searchFilter: async (req, res) => {
+    searchFilter: async (req, res) => { 
         try {
-            const { propertytype, propertfor, pickuplocation } = req.body
-            const Property = await property.find({ propertyType: propertytype, propertyFor: propertfor, location: pickuplocation })
-           
+            
+            const { propertytype, propertfor, location } = req.body 
+            
+          const Property = await property.find({
+    propertyType: propertytype,
+    propertyFor: propertfor,
+    location: location,
+    propertyStatus: { $ne: true } 
+  })
+  .populate("partnerId");
             if (!Property) {
                 return res.status(401).json({ message: " Your request has no matching properties" })
             } else {
                 res.status(201).json({ Property })
             }
 
-        } catch (error) {
+        } catch (error) { 
             res.status(500).json({ message: "Internal Server Error" })
             console.log(error.message)
         }
     },
+    resentOtp:async(req,res)=>{
+        try{
+            const {userId}=req.body   
+            const data=await user.findOne({_id:userId})
+            console.log(data)
+
+            const otpId=await sendEmail(data.name,data.email,data._id)
+            if(otpId){
+                res.status(200).json({message:`Resent otp sent to ${data.email}`})
+            }
+        }catch(error){
+            console.log(error.message)
+        }
+    }
 
 }

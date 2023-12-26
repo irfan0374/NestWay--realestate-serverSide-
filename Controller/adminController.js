@@ -161,7 +161,7 @@ module.exports = {
             const usersWithSubscription = await User.find({
                 'subscription.planType': { $exists: true }
               });
-              console.log(usersWithSubscription,"ehloooooooooooooooooooooooooooooooooooooooo")
+            
               if(usersWithSubscription){
                 res.status(200).json(usersWithSubscription)
               }            
@@ -170,5 +170,82 @@ module.exports = {
             console.log(error.message)
         }
     },
+    adminDashboard:async(req,res)=>{
+        try{
+        
+            let date = new Date();
+            let year = date.getFullYear();
+            let currentYear = new Date(year, 0, 1);
+            let users = []
+            let usersByYear = await User.aggregate([
+              {
+                $match: { createdAt: { $gte: currentYear }, isBlocked: { $ne: true } },
+              },
+              {
+                $group: {
+                  _id: { $dateToString: { format: "%m", date: "$createdAt" } },
+                  count: { $sum: 1 },
+                },
+              },
+              { $sort: { _id: 1 } },
+            ]);
+
+            for (let i = 1; i <= 12; i++) {
+              let result = true;
+              for (let j = 0; j < usersByYear.length; j++) {
+                result = false;
+                if (usersByYear[j]._id == i) {
+                  users.push(usersByYear[j]);
+                  break;
+                } else {
+                  result = true;
+                }
+              }
+
+              if (result) users.push({ _id: i, count: 0 });
+            }
+            let usersData = [];
+            for (let i = 0; i < users.length; i++) { 
+              usersData.push(users[i].count);    
+            }
+     
+         
+            let partners = []
+            let partnersByYear = await Partner.aggregate([
+              {
+                $match: { createdAt: { $gte: currentYear }, isBlocked: { $ne: true } },
+              },
+              {
+                $group: {
+                  _id: { $dateToString: { format: "%m", date: "$createdAt" } },
+                  count: { $sum: 1 },
+                },
+              },
+              { $sort: { _id: 1 } },
+            ]);
+            for (let i = 1; i <= 12; i++) {
+              let result = true;
+              for (let j = 0; j < partnersByYear.length; j++) {
+                result = false;
+                if (partnersByYear[j]._id == i) {
+                  partners.push(partnersByYear[j]);
+                  break;
+                } else {
+                  result = true;
+                }
+              }
+              if (result) partners.push({ _id: i, count: 0 });
+            }
+            let partnersData = [];
+            for (let i = 0; i < partners.length; i++) {
+              partnersData.push(partners[i].count);
+            }
+        res.status(200).json({partnersData,usersData})
+
+        }catch(error){
+            res.status(500).json({message:"Internal server Error"})
+            console.log(error.message)
+        }
+    } 
 
 }

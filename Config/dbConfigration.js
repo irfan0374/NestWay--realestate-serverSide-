@@ -1,16 +1,17 @@
-const mongoose=require('mongoose');
-require('dotenv').config()
+const mongoose = require('mongoose');
+require('dotenv').config();
 
-module.exports={
-    dbConnect:()=>{
-        mongoose.connect("mongodb+srv://irfan188iqbal:irfan10@cluster0.yh8xsjx.mongodb.net/SevenSky",{
-            useNewUrlParser: true, 
-            useUnifiedTopology: true,
-        }).then(()=>{
-            console.log("database connected")
-        }).catch((err)=>{
-            console.log(err)
-        })
+module.exports = {
+    dbConnect: () => {
+        const mongoURI = process.env.MONGO_URI;
+
+        mongoose.connect(mongoURI, {
+           
+          }).then(() => {
+            console.log("Database connected");
+          }).catch((err) => {
+            console.error("Error connecting to database:", err);
+          });
     },
 };
-
+    

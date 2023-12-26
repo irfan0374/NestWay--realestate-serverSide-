@@ -145,7 +145,7 @@ module.exports = {
         try {
             const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location, featureField, numberOfPeople } = req.body
     
-            console.log(location,"location form addproperty")
+         
 
             const uploadedPromises = propertyImage.map((image) => {
                 return cloudinary.uploader.upload(image, { folder: "propertyImage" })
@@ -274,7 +274,7 @@ module.exports = {
     },
     addDescription: async (req, res) => {
         try {
-            console.log(req.body, "req.body")
+         
             const { state, location, description, partnerId } = req.body
 
             const partnerData = await partner.findOneAndUpdate({ _id: partnerId }, { $set: { "aboutMe.state": state, "aboutMe.location": location, "aboutMe.description": description } })
@@ -368,10 +368,10 @@ module.exports = {
 
     deletepropertyImage: async (req, res) => {
         try {
-            console.log("hello image")
+        
 
             const { imgsrc } = req.body
-            console.log(imgsrc,"img")
+          
             const { id } = req.params
 
             const matchResult = await imgsrc.match(/\/v\d+\/(.+?)\./);
@@ -397,7 +397,6 @@ module.exports = {
     fetchBuyer: async (req, res) => {
         try {
             const { partnerId } = req.params
-            console.log(partnerId)
             const buyer = await buyerContact.find({ partnerId: partnerId })
             if (buyer) {
                 res.status(200).json({ buyer })
@@ -410,4 +409,25 @@ module.exports = {
             console.log(error.message)
         }
     },
-}   
+    hideTheProperty:async(req,res)=>{
+        try{
+         const{isChecked,propertyId}=req.body
+       
+         const Property=await property.findOneAndUpdate({_id:propertyId},{propertyStatus:!isChecked})
+         if(Property){
+            if(Property.propertyStatus==true){
+
+                res.status(201).json({message:"Property Display",Data:Property.propertyStatus})
+            }else{
+                res.status(201).json({message:"Property Hide",Data:Property.propertyStatus})
+            }
+         }else{
+            res.status(401).json({message:"something went wrong"})
+         } 
+          
+        }catch(error){
+            res.status(500).json({message:"Internal server Error"})
+            console.log(error.message)
+        }
+    },
+}     
