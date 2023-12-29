@@ -3,7 +3,7 @@ const { Server } = require("socket.io");
 function socketConnection(server) {
   const io = new Server(server, {
     cors: {
-      origin: "https://sevensky.vercel.app/",
+      origin: "https://sevensky.vercel.app",
       methods: ["GET", "POST"],
       credentials: true,
     },

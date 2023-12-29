@@ -17,10 +17,10 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: "https://sevensky.vercel.app/",
+    origin: "https://sevensky.vercel.app",
     methods: ['GET', 'POST', "PATCH"],
-    // credentials: true,
-    // optionsSuccessStatus: 200
+    credentials: true,
+    optionsSuccessStatus: 200
 }))
 
 
