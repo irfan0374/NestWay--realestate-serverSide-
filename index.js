@@ -17,7 +17,7 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://sevensky.vercel.app",
     methods: ['GET', 'POST', "PATCH"],
     credentials: true,
     optionsSuccessStatus: 200
