@@ -142,6 +142,7 @@ module.exports = {
         }
     },
     addProperty: async (req, res) => {
+        console.log(req.body, 'body');
         try {
             const { type, propertyname, state, city, price, floor, bathroom, description, propertyImage, bhk, propertyFor, partnerId, location, featureField, numberOfPeople } = req.body
     
