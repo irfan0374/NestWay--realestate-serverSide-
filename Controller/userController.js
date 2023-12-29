@@ -630,13 +630,14 @@ module.exports = {
         try{
             const {userId}=req.body   
             const data=await user.findOne({_id:userId})
-            console.log(data)
+        
 
             const otpId=await sendEmail(data.name,data.email,data._id)
             if(otpId){
                 res.status(200).json({message:`Resent otp sent to ${data.email}`})
             }
         }catch(error){
+            res.status(500).json({message:"Internal Server Error"})
             console.log(error.message)
         }
     }

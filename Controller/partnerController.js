@@ -430,4 +430,18 @@ module.exports = {
             console.log(error.message)
         }
     },
+    resendOpt:async(req,res)=>{
+        try{
+            const {partnerId}=req.body
+            const data=partner.findOne({_id:partnerId})
+            const otpId=await sendGmail(data.name,data.email,data._id)
+            if(otpId){
+                res.status(200).json({message:`Resent otp sent to ${data.email}`})
+            }
+
+        }catch(error){
+            res.status(500).json({message:"Internal Server Error"})
+            console.log(error.message)
+        }
+    }
 }     

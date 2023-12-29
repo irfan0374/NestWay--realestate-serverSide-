@@ -1,6 +1,6 @@
 const express = require("express")
 const partnerRoutes = express()
-const { signup, otpVerification, loginVerification, partnerKycUpload, addProperty, listProperty, detailProperty,findParnter,partnerProfile ,partnerimage,addDescription,findProperty,updateProperty,deletepropertyImage,fetchBuyer,hideTheProperty} = require('../Controller/partnerController')
+const { signup, otpVerification, loginVerification, partnerKycUpload, addProperty, listProperty, detailProperty,findParnter,partnerProfile ,partnerimage,addDescription,findProperty,updateProperty,deletepropertyImage,fetchBuyer,hideTheProperty,resendOpt} = require('../Controller/partnerController')
 const { partnerTokenVerified } = require("../Middleware/auth")
 partnerRoutes.post("/signup", signup)
 partnerRoutes.post("/otpVerification", otpVerification)
@@ -18,6 +18,7 @@ partnerRoutes.patch('/updateProperty/:id',partnerTokenVerified, updateProperty)
 partnerRoutes.patch('/deletePropertyImage/:id',partnerTokenVerified,deletepropertyImage)
 partnerRoutes.get('/fetchBuyers/:partnerId',partnerTokenVerified,fetchBuyer)
 partnerRoutes.post('/hideProperty',partnerTokenVerified,hideTheProperty)
+partnerRoutes.post('/resentOtp',resendOpt)
 
 
 module.exports = partnerRoutes;    
