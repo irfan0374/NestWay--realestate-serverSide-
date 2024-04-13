@@ -55,7 +55,7 @@ module.exports = {
             console.log(error.message)
             res.status(500).json({ status: "internal server Error" })
         }
-    },
+    }, 
 
     otpVerify: async (req, res) => {
         try {

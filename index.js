@@ -17,7 +17,7 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: "https://sevensky.vercel.app",
+    origin: process.env.CORS_ORIGIN,
     methods: ['GET', 'POST', "PATCH"],
     credentials: true,
     optionsSuccessStatus: 200
@@ -40,10 +40,10 @@ const socketConnection = require('./socket')
 
 
 app.use('/message', messageRoute)
-
+ 
 
 const server = http.createServer(app)
 socketConnection(server)
-server.listen(PORT,()=>{
+server.listen(PORT,()=>{ 
   console.log(`server running on port http://localhost:${PORT}`);
-})
+})  
