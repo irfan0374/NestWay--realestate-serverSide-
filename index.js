@@ -17,11 +17,20 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    methods: ['GET', 'POST', "PATCH"],
-    credentials: true,
-    optionsSuccessStatus: 200
-}))
+  origin: function(origin, callback) {
+    // Check if the origin is allowed, or set it to '*' to allow all origins
+    const allowedOrigins = ['http://localhost:5173', 'https://sevensky-c0lek8c8t-irfaans-projects.vercel.app'];
+                                                      
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 
 
 const adminRoutes = require('./Routes/adminRoute')
