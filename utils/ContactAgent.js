@@ -4,7 +4,7 @@ const ContactAgent = async(name,phone,email,partnerEmail,partnerName) => {
   
     try {
         var transporter=nodemailer.createTransport({
-            service:"gmail",
+            service:"gmail",   
             auth:{
                 user:'nestway2266@gmail.com',
                 pass:'sizspjldgnpxzmpx'

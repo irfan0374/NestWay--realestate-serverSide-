@@ -120,10 +120,10 @@ module.exports = {
         } catch (error) {
             console.log(error.message)
             res.status(500).json({ message: "Internal server Error" })
-        }
+        } 
     },
     findProperty: async (req, res) => {
-        try {
+        try { 
     
             const { propertyId } = req.params
        

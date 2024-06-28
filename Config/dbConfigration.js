@@ -3,10 +3,10 @@ require('dotenv').config();
 
 module.exports = {
     dbConnect: () => {
-        const mongoURI = process.env.MONGO_URI;
-
+        const mongoURI = process.env.MONGO_URI
+      
         mongoose.connect(mongoURI, {
-           
+        
           }).then(() => {
             console.log("Database connected");
           }).catch((err) => {
@@ -14,4 +14,4 @@ module.exports = {
           });
     },
 };
-     
+    
